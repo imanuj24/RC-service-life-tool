@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RC Service Life Design Tool</title>
+<meta name="description" content="Service life prediction for reinforced concrete under chloride exposure. Developed at MNNIT Allahabad.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="34" height="34">
+          <rect x="2" y="2" width="36" height="36" rx="4" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M10 28 L10 16 L20 10 L30 16 L30 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <line x1="10" y1="28" x2="30" y2="28" stroke="currentColor" stroke-width="2"/>
+          <line x1="15" y1="28" x2="15" y2="20" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="20" y1="28" x2="20" y2="18" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="25" y1="28" x2="25" y2="20" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">RC Service Life</span>
+        <span class="brand-subtitle">Design Tool</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Primary navigation">
+      <button class="nav-item active" data-tab="predict">
+        <span class="nav-icon" aria-hidden="true">&#9651;</span>
+        <span class="nav-label">Prediction</span>
+      </button>
+      <button class="nav-item" data-tab="contour">
+        <span class="nav-icon" aria-hidden="true">&#8862;</span>
+        <span class="nav-label">Contour maps</span>
+      </button>
+      <button class="nav-item" data-tab="sensitivity">
+        <span class="nav-icon" aria-hidden="true">&#8599;</span>
+        <span class="nav-label">Sensitivity</span>
+      </button>
+      <button class="nav-item" data-tab="reverse">
+        <span class="nav-icon" aria-hidden="true">&#8981;</span>
+        <span class="nav-label">Design lookup</span>
+      </button>
+      <button class="nav-item" data-tab="compare">
+        <span class="nav-icon" aria-hidden="true">&#8853;</span>
+        <span class="nav-label">Binder comparison</span>
+      </button>
+      <button class="nav-item" data-tab="about">
+        <span class="nav-icon" aria-hidden="true">&#8505;</span>
+        <span class="nav-label">Documentation</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p class="footer-line">Developed by:</p>
+      <p class="footer-line">Anuj Mishra &amp; Laxmi Kant Mishra</p>
+      <p class="footer-line muted">Department of Civil Engineering<br>MNNIT Allahabad</p>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title">
+        <h1 id="pageTitle">Service life prediction</h1>
+        <p id="pageSubtitle">Estimate corrosion-induced service life for a given mix design</p>
+      </div>
+      <div class="topbar-meta">
+        <span class="chip">Chloride exposure</span>
+        <span class="chip chip-outline">Design space: C 45&ndash;80&nbsp;mm &middot; w/b 0.30&ndash;0.50</span>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ============ TAB: PREDICT ============ -->
+      <section class="tab-panel active" id="panel-predict" data-panel="predict">
+        <div class="grid grid-2">
+
+          <div class="col">
+            <article class="card">
+              <header class="card-header">
+                <h2>Mix design inputs</h2>
+              </header>
+              <div class="card-body">
+
+                <div class="field">
+                  <label for="binder">Binder system</label>
+                  <select id="binder" class="control">
+                    <option value="OPC">OPC &mdash; Ordinary Portland Cement</option>
+                    <option value="FA">FA &mdash; Fly Ash</option>
+                    <option value="GGBS">GGBS &mdash; Ground Granulated Blast Furnace Slag</option>
+                    <option value="SF">SF &mdash; Silica Fume</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <div class="field-label-row">
+                    <label for="cover">Cover depth</label>
+                    <output class="field-value" id="cover-out">65 mm</output>
+                  </div>
+                  <input type="range" id="cover" class="slider" min="45" max="80" step="1" value="65">
+                  <div class="slider-range"><span>45 mm</span><span>80 mm</span></div>
+                </div>
+
+                <div class="field">
+                  <div class="field-label-row">
+                    <label for="wb">Water&ndash;binder ratio (w/b)</label>
+                    <output class="field-value" id="wb-out">0.40</output>
+                  </div>
+                  <input type="range" id="wb" class="slider" min="0.30" max="0.50" step="0.01" value="0.40">
+                  <div class="slider-range"><span>0.30</span><span>0.50</span></div>
+                </div>
+
+                <div class="field" id="scm-field">
+                  <div class="field-label-row">
+                    <label for="scm" id="scm-label">SCM replacement</label>
+                    <output class="field-value" id="scm-out">30%</output>
+                  </div>
+                  <input type="range" id="scm" class="slider" min="20" max="40" step="5" value="30">
+                  <div class="slider-range"><span id="scm-min">20%</span><span id="scm-max">40%</span></div>
+                </div>
+
+              </div>
+            </article>
+
+            <article class="card">
+              <header class="card-header">
+                <h2>Model specification</h2>
+              </header>
+              <div class="card-body">
+                <dl class="spec-list" id="model-spec"></dl>
+                <div class="eq-display" id="model-eq"></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="col">
+            <article class="card card-result">
+              <header class="card-header">
+                <h2>Predicted service life</h2>
+              </header>
+              <div class="card-body">
+                <div class="result-display">
+                  <span class="result-value" id="sl-value">&mdash;</span>
+                  <span class="result-unit">years</span>
+                </div>
+                <div class="result-status" id="sl-status"></div>
+              </div>
+            </article>
+
+            <article class="card">
+              <header class="card-header">
+                <h2>Design life compliance</h2>
+              </header>
+              <div class="card-body card-body-table">
+                <table class="data-table" id="compliance-table">
+                  <thead>
+                    <tr><th>Target</th><th>Status</th><th>Margin</th></tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </article>
+
+            <div class="action-row">
+              <button class="btn btn-primary" id="downloadPdf">
+                <span aria-hidden="true">&#11015;</span> Download PDF report
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============ TAB: CONTOUR ============ -->
+      <section class="tab-panel" id="panel-contour" data-panel="contour">
+        <article class="card">
+          <header class="card-header">
+            <h2>Contour map settings</h2>
+          </header>
+          <div class="card-body">
+            <div class="grid grid-3">
+              <div class="field" id="c-binder-field">
+                <label for="c-binder">Binder system</label>
+                <select id="c-binder" class="control">
+                  <option value="OPC">OPC &mdash; Ordinary Portland Cement</option>
+                  <option value="FA">FA &mdash; Fly Ash</option>
+                  <option value="GGBS">GGBS &mdash; Ground Granulated Blast Furnace Slag</option>
+                  <option value="SF">SF &mdash; Silica Fume</option>
+                </select>
+              </div>
+              <div class="field" id="c-scm-field" hidden>
+                <div class="field-label-row">
+                  <label for="c-scm" id="c-scm-label">SCM replacement</label>
+                  <output class="field-value" id="c-scm-out">30%</output>
+                </div>
+                <input type="range" id="c-scm" class="slider" min="20" max="40" step="1" value="30">
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card-header">
+            <h2>Service life contour map</h2>
+            <span class="badge badge-info">Discrete bands</span>
+          </header>
+          <div class="card-body">
+            <p class="card-note">Each color band represents a discrete service-life range. Use the chart to identify combinations of cover depth and w/b ratio that meet a target service life.</p>
+            <div id="contour-container" class="contour-grid"></div>
+          </div>
+        </article>
+      </section>
+
+      <!-- ============ TAB: SENSITIVITY ============ -->
+      <section class="tab-panel" id="panel-sensitivity" data-panel="sensitivity">
+        <article class="card">
+          <header class="card-header">
+            <h2>Sensitivity settings</h2>
+          </header>
+          <div class="card-body">
+            <div class="grid grid-4">
+              <div class="field">
+                <label for="s-binder">Binder system</label>
+                <select id="s-binder" class="control">
+                  <option value="OPC">OPC</option>
+                  <option value="FA">FA</option>
+                  <option value="GGBS">GGBS</option>
+                  <option value="SF">SF</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="s-cover">Fixed cover (mm)</label>
+                <input type="number" id="s-cover" class="control" value="65" min="45" max="80" step="1">
+              </div>
+              <div class="field">
+                <label for="s-wb">Fixed w/b</label>
+                <input type="number" id="s-wb" class="control" value="0.40" min="0.30" max="0.50" step="0.01">
+              </div>
+              <div class="field" id="s-scm-field">
+                <label for="s-scm" id="s-scm-label">Fixed SCM (%)</label>
+                <input type="number" id="s-scm" class="control" value="30" min="20" max="40" step="5">
+              </div>
+            </div>
+            <p class="card-note">Each chart varies one parameter while holding the others fixed, illustrating how predicted service life responds across the design range.</p>
+          </div>
+        </article>
+
+        <div class="grid grid-2">
+          <article class="card">
+            <header class="card-header"><h2>SL vs. cover depth</h2></header>
+            <div class="card-body">
+              <div class="chart-wrap"><canvas id="chart-cover" role="img" aria-label="Service life versus cover depth"></canvas></div>
+            </div>
+          </article>
+          <article class="card">
+            <header class="card-header"><h2>SL vs. w/b ratio</h2></header>
+            <div class="card-body">
+              <div class="chart-wrap"><canvas id="chart-wb" role="img" aria-label="Service life versus water-binder ratio"></canvas></div>
+            </div>
+          </article>
+        </div>
+
+        <article class="card" id="scm-chart-card">
+          <header class="card-header"><h2 id="scm-chart-title">SL vs. SCM replacement</h2></header>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="chart-scm" role="img" aria-label="Service life versus SCM replacement percentage"></canvas></div>
+          </div>
+        </article>
+      </section>
+
+      <!-- ============ TAB: REVERSE LOOKUP ============ -->
+      <section class="tab-panel" id="panel-reverse" data-panel="reverse">
+        <article class="card">
+          <header class="card-header">
+            <h2>Find mix designs for a target service life</h2>
+          </header>
+          <div class="card-body">
+            <div class="grid grid-3">
+              <div class="field">
+                <label for="r-target">Target service life (years)</label>
+                <input type="number" id="r-target" class="control" value="50" min="10" max="150" step="5">
+              </div>
+              <div class="field">
+                <label for="r-binder">Binder filter</label>
+                <select id="r-binder" class="control">
+                  <option value="ALL">All binder systems</option>
+                  <option value="OPC">OPC only</option>
+                  <option value="FA">FA only</option>
+                  <option value="GGBS">GGBS only</option>
+                  <option value="SF">SF only</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="r-sort">Sort results by</label>
+                <select id="r-sort" class="control">
+                  <option value="sl">Highest service life</option>
+                  <option value="cover">Lowest cover depth</option>
+                  <option value="wb">Highest w/b ratio</option>
+                </select>
+              </div>
+            </div>
+            <div class="action-row">
+              <button class="btn btn-primary" id="runLookup">Find combinations</button>
+            </div>
+          </div>
+        </article>
+
+        <div id="reverse-results"></div>
+      </section>
+
+      <!-- ============ TAB: BINDER COMPARE ============ -->
+      <section class="tab-panel" id="panel-compare" data-panel="compare">
+        <article class="card">
+          <header class="card-header">
+            <h2>Comparison inputs</h2>
+          </header>
+          <div class="card-body">
+            <div class="grid grid-3">
+              <div class="field">
+                <div class="field-label-row">
+                  <label for="cmp-cover">Cover depth</label>
+                  <output class="field-value" id="cmp-cover-out">65 mm</output>
+                </div>
+                <input type="range" id="cmp-cover" class="slider" min="45" max="80" step="1" value="65">
+              </div>
+              <div class="field">
+                <div class="field-label-row">
+                  <label for="cmp-wb">w/b ratio</label>
+                  <output class="field-value" id="cmp-wb-out">0.40</output>
+                </div>
+                <input type="range" id="cmp-wb" class="slider" min="0.30" max="0.50" step="0.01" value="0.40">
+              </div>
+              <div class="field">
+                <div class="field-label-row">
+                  <label for="cmp-scm">SCM replacement</label>
+                  <output class="field-value" id="cmp-scm-out">30%</output>
+                </div>
+                <input type="range" id="cmp-scm" class="slider" min="5" max="70" step="5" value="30">
+              </div>
+            </div>
+            <p class="card-note">SCM% is applied to FA (20&ndash;40%), GGBS (30&ndash;70%) and SF (5&ndash;15%); values outside each binder's valid range are clamped automatically. OPC has no SCM input.</p>
+          </div>
+        </article>
+
+        <div class="grid grid-4" id="compare-cards"></div>
+
+        <article class="card">
+          <header class="card-header"><h2>Service life comparison</h2></header>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="chart-compare" role="img" aria-label="Bar chart comparing service life across binder systems"></canvas></div>
+          </div>
+        </article>
+      </section>
+
+      <!-- ============ TAB: ABOUT ============ -->
+      <section class="tab-panel" id="panel-about" data-panel="about">
+        <article class="card">
+          <header class="card-header"><h2>About this tool</h2></header>
+          <div class="card-body">
+            <p>This tool implements regression-based equations for service life prediction of reinforced concrete incorporating supplementary cementitious materials (SCMs) under chloride exposure conditions.</p>
+
+            <div class="grid grid-2" style="margin-top:1.25rem">
+              <div>
+                <h3 class="subsection-title">Binder systems</h3>
+                <ul class="bullet-list">
+                  <li>OPC &mdash; Ordinary Portland Cement</li>
+                  <li>FA &mdash; Fly Ash (20&ndash;40% replacement)</li>
+                  <li>GGBS &mdash; Ground Granulated Blast Furnace Slag (30&ndash;70%)</li>
+                  <li>SF &mdash; Silica Fume (5&ndash;15% replacement)</li>
+                </ul>
+              </div>
+              <div>
+                <h3 class="subsection-title">Valid design space</h3>
+                <ul class="bullet-list">
+                  <li>Cover depth: 45&ndash;80 mm</li>
+                  <li>w/b ratio: 0.30&ndash;0.50</li>
+                  <li>Exposure: chloride / coastal</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card-header"><h2>Selected models</h2></header>
+          <div class="card-body" id="about-models"></div>
+          <div class="card-body" style="padding-top:0">
+            <p class="muted-text">Each model was validated against an independent test dataset, with R&sup2; values between 0.93 and 0.97 across all four binder systems.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card-header"><h2>Disclaimer</h2></header>
+          <div class="card-body">
+            <p class="muted-text">This tool is intended for preliminary design guidance only. Results should be verified by a qualified engineer. Predictions are valid within the stated design space; extrapolation beyond the recommended parameter ranges is not advised.</p>
+          </div>
+        </article>
+      </section>
+
+    </main>
+
+    <footer class="app-footer">
+      <p>Developed by: Anuj Mishra &amp; Laxmi Kant Mishra &mdash; Department of Civil Engineering, MNNIT Allahabad</p>
+    </footer>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="js/equations.js"></script>
+<script src="js/report.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
